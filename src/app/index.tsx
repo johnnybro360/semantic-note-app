@@ -1,11 +1,26 @@
-import { Pressable, Text, View } from "react-native";
+import { NoteListEmptyState } from "@/features/notes/components/note-list-empty-state";
+import { NoteListErrorState } from "@/features/notes/components/note-list-error-state";
+import { NoteListItem } from "@/features/notes/components/note-list-item";
+import { NoteListLoadingState } from "@/features/notes/components/note-list-loading-state";
+import { useNotes } from "@/features/notes/notes.queries";
+import { useRouter } from "expo-router";
+import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Index() {
+export default function NotesScreen() {
+  const router = useRouter();
+  const {
+    data: notes = [],
+    isPending,
+    isError,
+    isRefetching,
+    refetch,
+  } = useNotes();
+
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
       <View className="flex-1 px-5 py-4">
-        <View>
+        <View className="mb-4">
           <Text className="text-3xl font-bold text-white">Notes</Text>
 
           <Text className="mt-1 text-base text-slate-400">
@@ -13,20 +28,41 @@ export default function Index() {
           </Text>
         </View>
 
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-lg font-semibold text-slate-200">
-            No notes yet
-          </Text>
-
-          <Text className="mt-2 text-center text-sm leading-5 text-slate-500">
-            Save a solution, concept, or reminder clue.
-          </Text>
-        </View>
+        {isPending ? (
+          <NoteListLoadingState />
+        ) : isError ? (
+          <NoteListErrorState onRetry={refetch} />
+        ) : (
+          <FlatList
+            className="flex-1"
+            contentContainerStyle={{
+              flexGrow: 1,
+              gap: 12,
+            }}
+            data={notes}
+            keyExtractor={(note) => note.id}
+            renderItem={({ item }) => (
+              <NoteListItem
+                note={item}
+                onPress={() =>
+                  router.push({
+                    pathname: "/notes/[id]",
+                    params: {
+                      id: item.id,
+                    },
+                  })
+                }
+              />
+            )}
+            ListEmptyComponent={<NoteListEmptyState />}
+            refreshing={isRefetching}
+            onRefresh={refetch}
+          />
+        )}
 
         <Pressable
-          className="items-center rounded-xl bg-blue-500 px-4 py-4
-                     active:bg-blue-600"
-          onPress={() => console.log("Create note")}
+          className="mt-4 items-center rounded-xl bg-blue-500 px-4 py-4 active:bg-blue-600"
+          onPress={() => router.push("/notes/new")}
         >
           <Text className="text-base font-semibold text-white">New note</Text>
         </Pressable>
