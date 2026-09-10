@@ -1,8 +1,8 @@
 import type {
-    CreateNoteInput,
-    EmbeddingStatus,
-    Note,
-    UpdateNoteInput,
+  CreateNoteInput,
+  EmbeddingStatus,
+  Note,
+  UpdateNoteInput,
 } from "@/features/notes/notes.types";
 import type { SQLiteDatabase } from "expo-sqlite";
 
@@ -13,6 +13,10 @@ type NoteRow = {
   embedding_status: EmbeddingStatus;
   created_at: number;
   updated_at: number;
+};
+
+type NoteSearchRow = NoteRow & {
+  search_rank: number;
 };
 
 function mapNoteRow(row: NoteRow): Note {
@@ -157,4 +161,83 @@ export const notesRepository = {
 
     return result.changes > 0;
   },
+
+  async search(
+    database: SQLiteDatabase,
+    searchText: string,
+    limit = 50,
+  ): Promise<Note[]> {
+    const ftsQuery = buildFtsQuery(searchText);
+
+    if (!ftsQuery) {
+      return [];
+    }
+
+    const rows = await database.getAllAsync<NoteSearchRow>(
+      `
+        SELECT
+          notes.id,
+          notes.title,
+          notes.body,
+          notes.embedding_status,
+          notes.created_at,
+          notes.updated_at,
+          bm25(notes_fts, 5.0, 1.0) AS search_rank
+        FROM notes_fts
+        INNER JOIN notes
+          ON notes.rowid = notes_fts.rowid
+        WHERE notes_fts MATCH $query
+        ORDER BY
+          search_rank ASC,
+          notes.updated_at DESC
+        LIMIT $limit
+      `,
+      {
+        $query: ftsQuery,
+        $limit: limit,
+      },
+    );
+
+    return rows.map(mapNoteRow);
+  },
 };
+
+const FTS_STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "did",
+  "do",
+  "for",
+  "how",
+  "i",
+  "in",
+  "is",
+  "it",
+  "my",
+  "of",
+  "on",
+  "or",
+  "the",
+  "this",
+  "to",
+  "was",
+  "what",
+  "when",
+  "where",
+  "with",
+]);
+
+function buildFtsQuery(searchText: string): string {
+  const terms = searchText
+    .trim()
+    .split(/\s+/)
+    .map((term) =>
+      term.trim().replace(/^[^\p{L}\p{N}_]+|[^\p{L}\p{N}_]+$/gu, ""),
+    )
+    .filter((term) => term.length > 1)
+    .filter((term) => !FTS_STOP_WORDS.has(term.toLowerCase()))
+    .map((term) => `"${term.replaceAll('"', '""')}"`);
+
+  return terms.join(" OR ");
+}

@@ -8,6 +8,7 @@
         "@expo/ui": "~57.0.17",
         "@tanstack/react-query": "^5.102.8",
         "expo": "~57.0.21",
+        "expo-asset": "~57.0.16",
         "expo-constants": "~57.0.17",
         "expo-dev-client": "~57.0.18",
         "expo-device": "~57.0.1",
@@ -25,6 +26,7 @@
         "expo-system-ui": "~57.0.3",
         "expo-web-browser": "~57.0.2",
         "nativewind": "^4.2.6",
+        "onnxruntime-react-native": "^1.24.3",
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "react-native": "0.86.3",
@@ -891,6 +893,10 @@
     "on-headers": ["on-headers@1.1.0", "https://registry.npmmirror.com/on-headers/-/on-headers-1.1.0.tgz", {}, "sha512-737ZY3yNnXy37FHkQxPzt4UZ2UWPWiCZWLvFZ4fu5cueciegX0zGPnrlY6bwRg4FdQOe9YU8MkmJwGhoMybl8A=="],
 
     "onetime": ["onetime@2.0.1", "https://registry.npmmirror.com/onetime/-/onetime-2.0.1.tgz", { "dependencies": { "mimic-fn": "^1.0.0" } }, "sha512-oyyPpiMaKARvvcgip+JV+7zci5L8D1W9RZIz2l1o08AM3pfspitVWnPt3mzHcBPp12oYMTy0pqrFs/C+m3EwsQ=="],
+
+    "onnxruntime-common": ["onnxruntime-common@1.24.3", "https://registry.npmmirror.com/onnxruntime-common/-/onnxruntime-common-1.24.3.tgz", {}, "sha512-GeuPZO6U/LBJXvwdaqHbuUmoXiEdeCjWi/EG7Y1HNnDwJYuk6WUbNXpF6luSUY8yASul3cmUlLGrCCL1ZgVXqA=="],
+
+    "onnxruntime-react-native": ["onnxruntime-react-native@1.24.3", "https://registry.npmmirror.com/onnxruntime-react-native/-/onnxruntime-react-native-1.24.3.tgz", { "dependencies": { "onnxruntime-common": "1.24.3" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-vMxFcnO1YDtT6auv719Zk0Zj/EXujqeEzSjTe5W7A915qaRrM4pRfXlI4ye/ExOwcTan7NYVZ/wpLX+YBU2aWQ=="],
 
     "open": ["open@7.4.2", "https://registry.npmmirror.com/open/-/open-7.4.2.tgz", { "dependencies": { "is-docker": "^2.0.0", "is-wsl": "^2.1.1" } }, "sha512-MVHddDVweXZF3awtlAS+6pgKLlm/JgxZ90+/NBurBoQctVOOB/zDdVjcyPzQ+0laDGbsWgrRkflI65sQeOgT9Q=="],
 

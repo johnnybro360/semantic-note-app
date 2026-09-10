@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
 import { createNotesMigration } from "./001-create-notes";
+import { createNotesFtsMigration } from "./002-create-notes-fts";
 
 type Migration = {
   version: number;
@@ -11,6 +12,10 @@ const migrations: Migration[] = [
   {
     version: 1,
     up: createNotesMigration,
+  },
+  {
+    version: 2,
+    up: createNotesFtsMigration,
   },
 ];
 

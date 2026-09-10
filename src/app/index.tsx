@@ -1,21 +1,38 @@
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { FlatList, Pressable, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { NoteListEmptyState } from "@/features/notes/components/note-list-empty-state";
 import { NoteListErrorState } from "@/features/notes/components/note-list-error-state";
 import { NoteListItem } from "@/features/notes/components/note-list-item";
 import { NoteListLoadingState } from "@/features/notes/components/note-list-loading-state";
-import { useNotes } from "@/features/notes/notes.queries";
-import { useRouter } from "expo-router";
-import { FlatList, Pressable, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { NoteSearchEmptyState } from "@/features/notes/components/note-search-empty-state";
+import { NoteSearchInput } from "@/features/notes/components/note-search-input";
+import { useNotes, useSearchNotes } from "@/features/notes/notes.queries";
 
 export default function NotesScreen() {
   const router = useRouter();
-  const {
-    data: notes = [],
-    isPending,
-    isError,
-    isRefetching,
-    refetch,
-  } = useNotes();
+  const [searchText, setSearchText] = useState("");
+
+  const normalizedSearchText = searchText.trim();
+  const isSearching = normalizedSearchText.length > 0;
+
+  /*
+   * Hooks must always be called unconditionally.
+   *
+   * useSearchNotes() internally uses enabled: false when
+   * normalizedSearchText is empty.
+   */
+  const notesQuery = useNotes();
+  const searchQuery = useSearchNotes(normalizedSearchText);
+
+  /*
+   * Select which query result should currently be displayed.
+   */
+  const activeQuery = isSearching ? searchQuery : notesQuery;
+
+  const notes = activeQuery.data ?? [];
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
@@ -28,10 +45,14 @@ export default function NotesScreen() {
           </Text>
         </View>
 
-        {isPending ? (
+        <View className="mb-4">
+          <NoteSearchInput value={searchText} onChangeText={setSearchText} />
+        </View>
+
+        {activeQuery.isPending ? (
           <NoteListLoadingState />
-        ) : isError ? (
-          <NoteListErrorState onRetry={refetch} />
+        ) : activeQuery.isError ? (
+          <NoteListErrorState onRetry={() => void activeQuery.refetch()} />
         ) : (
           <FlatList
             className="flex-1"
@@ -54,9 +75,16 @@ export default function NotesScreen() {
                 }
               />
             )}
-            ListEmptyComponent={<NoteListEmptyState />}
-            refreshing={isRefetching}
-            onRefresh={refetch}
+            ListEmptyComponent={
+              isSearching ? (
+                <NoteSearchEmptyState query={normalizedSearchText} />
+              ) : (
+                <NoteListEmptyState />
+              )
+            }
+            refreshing={activeQuery.isRefetching}
+            onRefresh={() => void activeQuery.refetch()}
+            keyboardShouldPersistTaps="handled"
           />
         )}
 

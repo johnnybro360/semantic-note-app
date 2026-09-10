@@ -42,7 +42,9 @@
           "withSQLiteVecExtension": true
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset",
+      "onnxruntime-react-native"
     ],
     "experiments": {
       "typedRoutes": true,
