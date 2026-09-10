@@ -50,9 +50,7 @@ export function EmbeddingBenchmark() {
         "How did I fix the Android build after upgrading Worklets?",
       );
 
-      const relatedEmbedding = await createEmbedding(
-        "I fixed the Android CMake cache problem by deleting affected build folders.",
-      );
+      const relatedEmbedding = await createEmbedding(BENCHMARK_TEXT);
 
       const unrelatedEmbedding = await createEmbedding(
         "Cook rice in a pressure cooker for several minutes.",

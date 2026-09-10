@@ -43,8 +43,9 @@
         }
       ],
       "expo-secure-store",
-      "expo-asset",
-      "onnxruntime-react-native"
+      "onnxruntime-react-native",
+      "./plugins/with-onnxruntime-package",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,
