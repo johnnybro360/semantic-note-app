@@ -1,4 +1,5 @@
 import type { SQLiteDatabase } from "expo-sqlite";
+import { loadSQLiteVecExtension } from "./extensions/sqlite-vec";
 import { migrateDatabase } from "./migrations";
 
 export const DATABASE_NAME = "noteapp.db";
@@ -11,5 +12,6 @@ export async function initializeDatabase(
     PRAGMA foreign_keys = ON;
   `);
 
+  await loadSQLiteVecExtension(database);
   await migrateDatabase(database);
 }
