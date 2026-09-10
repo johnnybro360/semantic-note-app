@@ -9,10 +9,7 @@ import { NoteListItem } from "@/features/notes/components/note-list-item";
 import { NoteListLoadingState } from "@/features/notes/components/note-list-loading-state";
 import { NoteSearchEmptyState } from "@/features/notes/components/note-search-empty-state";
 import { NoteSearchInput } from "@/features/notes/components/note-search-input";
-import {
-  useNotes,
-  useSemanticSearchNotes,
-} from "@/features/notes/notes.queries";
+import { useHybridSearchNotes, useNotes } from "@/features/notes/notes.queries";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 export default function NotesScreen() {
@@ -39,7 +36,9 @@ export default function NotesScreen() {
 
   const notesQuery = useNotes();
 
-  const searchQuery = useSemanticSearchNotes(normalizedSearchText);
+  // const searchQuery = useSemanticSearchNotes(normalizedSearchText);
+
+  const searchQuery = useHybridSearchNotes(normalizedSearchText);
 
   /*
    * Select which query result should currently be displayed.
@@ -108,12 +107,12 @@ export default function NotesScreen() {
         >
           <Text className="text-base font-semibold text-white">New note</Text>
         </Pressable>
-        <Pressable
+        {/* <Pressable
           className="mt-3 rounded-xl bg-slate-800 p-4"
           onPress={() => router.push("/dev/embedding")}
         >
           <Text className="text-center text-white">Test embedding runtime</Text>
-        </Pressable>
+        </Pressable> */}
       </View>
     </SafeAreaView>
   );

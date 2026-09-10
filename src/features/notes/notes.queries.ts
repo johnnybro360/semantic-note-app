@@ -9,6 +9,7 @@ import { useSQLiteContext, type SQLiteDatabase } from "expo-sqlite";
 import { indexNoteEmbedding } from "@/features/embeddings/note-embedding-index.service";
 
 import { notesRepository } from "@/db/repositories/notes.repository";
+import { searchNotesHybrid } from "./hybrid-note-search.service";
 import type { CreateNoteInput, Note, UpdateNoteInput } from "./notes.types";
 import { searchNotesSemantically } from "./semantic-note-search.service";
 
@@ -20,6 +21,8 @@ export const noteKeys = {
   search: (query: string) => [...noteKeys.searches(), query] as const,
   semanticSearch: (query: string) =>
     [...noteKeys.searches(), "semantic", query] as const,
+  hybridSearch: (query: string) =>
+    [...noteKeys.searches(), "hybrid", query] as const,
 };
 
 type ScheduleNoteEmbeddingOptions = {
@@ -184,6 +187,21 @@ export function useSemanticSearchNotes(query: string) {
     queryKey: noteKeys.semanticSearch(normalizedQuery),
 
     queryFn: () => searchNotesSemantically(database, normalizedQuery),
+
+    select: (results) => results.map((result) => result.note),
+
+    enabled: normalizedQuery.length > 0,
+  });
+}
+
+export function useHybridSearchNotes(query: string) {
+  const database = useSQLiteContext();
+  const normalizedQuery = query.trim();
+
+  return useQuery({
+    queryKey: noteKeys.hybridSearch(normalizedQuery),
+
+    queryFn: () => searchNotesHybrid(database, normalizedQuery),
 
     select: (results) => results.map((result) => result.note),
 
