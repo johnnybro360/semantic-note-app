@@ -182,4 +182,23 @@ export const noteEmbeddingsRepository = {
       similarity: 1 - row.distance,
     }));
   },
+
+  async markPending(
+    database: SQLiteDatabase,
+    noteId: string,
+  ): Promise<boolean> {
+    const result = await database.runAsync(
+      `
+        UPDATE notes
+        SET embedding_status = 'pending'
+        WHERE id = $noteId
+          AND embedding_status = 'failed'
+      `,
+      {
+        $noteId: noteId,
+      },
+    );
+
+    return result.changes > 0;
+  },
 };

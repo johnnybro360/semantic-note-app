@@ -9,6 +9,7 @@ import { useSQLiteContext, type SQLiteDatabase } from "expo-sqlite";
 import { indexNoteEmbedding } from "@/features/embeddings/note-embedding-index.service";
 
 import { notesRepository } from "@/db/repositories/notes.repository";
+import { retryNoteEmbedding } from "@/features/embeddings/note-embedding-index.service";
 import { searchNotesHybrid } from "./hybrid-note-search.service";
 import type { CreateNoteInput, Note, UpdateNoteInput } from "./notes.types";
 import { searchNotesSemantically } from "./semantic-note-search.service";
@@ -68,7 +69,8 @@ export function useNotes() {
 
   return useQuery({
     queryKey: noteKeys.list(),
-    queryFn: () => notesRepository.findAll(database),
+    // queryFn: () => notesRepository.findAll(database),
+    queryFn: () => notesRepository.findRecent(database, 10),
   });
 }
 
@@ -206,5 +208,20 @@ export function useHybridSearchNotes(query: string) {
     select: (results) => results.map((result) => result.note),
 
     enabled: normalizedQuery.length > 0,
+  });
+}
+
+export function useRetryNoteEmbedding() {
+  const database = useSQLiteContext();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (noteId: string) => retryNoteEmbedding(database, noteId),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: noteKeys.all,
+      });
+    },
   });
 }

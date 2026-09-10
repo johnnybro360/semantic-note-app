@@ -1,10 +1,10 @@
 import { useRouter } from "expo-router";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    Text,
-    View,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -18,14 +18,8 @@ export default function NewNoteScreen() {
 
   async function handleSubmit(input: CreateNoteInput) {
     try {
-      const note = await createNote.mutateAsync(input);
-
-      router.replace({
-        pathname: "/notes/[id]",
-        params: {
-          id: note.id,
-        },
-      });
+      await createNote.mutateAsync(input);
+      router.dismissTo("/");
     } catch {
       // The mutation exposes the error through createNote.isError.
       // Detailed logging can be added separately.

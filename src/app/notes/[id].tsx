@@ -1,11 +1,21 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, Pressable, Text, View } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { NoteDetailErrorState } from "@/features/notes/components/note-detail-error-state";
 import { NoteDetailLoadingState } from "@/features/notes/components/note-detail-loading-state";
 import { NoteDetailNotFoundState } from "@/features/notes/components/note-detail-not-found-state";
+import { NoteEmbeddingRetry } from "@/features/notes/components/note-embedding-retry";
 import { NoteForm } from "@/features/notes/components/note-form";
+import { NoteShareButton } from "@/features/notes/components/note-share-button";
 import {
   useDeleteNote,
   useNote,
@@ -87,44 +97,62 @@ export default function NoteDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
-      <View className="flex-1 px-5 py-4">
-        <View className="mb-6 flex-row items-center">
-          <Pressable
-            className="mr-4 rounded-lg px-2 py-2 active:bg-slate-800"
-            disabled={isMutating}
-            onPress={() => router.back()}
-          >
-            <Text className="text-base text-blue-400">Back</Text>
-          </Pressable>
-
-          <Text className="text-2xl font-bold text-white">Edit note</Text>
-        </View>
-
-        <NoteForm
-          initialTitle={note.title}
-          initialBody={note.body}
-          submitLabel="Save changes"
-          isSubmitting={updateNote.isPending}
-          errorMessage={
-            updateNote.isError
-              ? "Could not update the note. Please try again."
-              : undefined
-          }
-          onSubmit={handleUpdate}
-        />
-
-        <Pressable
-          className={`mt-3 items-center rounded-xl border border-red-900 px-4 py-3 ${
-            isMutating ? "opacity-50" : "active:bg-red-950"
-          }`}
-          disabled={isMutating}
-          onPress={confirmDelete}
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            paddingBottom: 32,
+          }}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text className="font-semibold text-red-400">
-            {deleteNote.isPending ? "Deleting..." : "Delete note"}
-          </Text>
-        </Pressable>
-      </View>
+          <View className="mb-6 flex-row items-center">
+            <Pressable
+              className="mr-4 rounded-lg px-2 py-2 active:bg-slate-800"
+              disabled={isMutating}
+              onPress={() => router.back()}
+            >
+              <Text className="text-base text-blue-400">Back</Text>
+            </Pressable>
+
+            <Text className="text-2xl font-bold text-white">Edit note</Text>
+          </View>
+
+          <NoteEmbeddingRetry note={note} />
+
+          <NoteForm
+            initialTitle={note.title}
+            initialBody={note.body}
+            submitLabel="Save changes"
+            isSubmitting={updateNote.isPending}
+            errorMessage={
+              updateNote.isError
+                ? "Could not update the note. Please try again."
+                : undefined
+            }
+            onSubmit={handleUpdate}
+          />
+
+          <NoteShareButton note={note} disabled={isMutating} />
+
+          <Pressable
+            className={`mt-3 items-center rounded-xl border border-red-900 px-4 py-3 ${
+              isMutating ? "opacity-50" : "active:bg-red-950"
+            }`}
+            disabled={isMutating}
+            onPress={confirmDelete}
+          >
+            <Text className="font-semibold text-red-400">
+              {deleteNote.isPending ? "Deleting..." : "Delete note"}
+            </Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

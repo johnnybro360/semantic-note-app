@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
 import type { CreateNoteInput } from "../notes.types";
 
@@ -38,44 +38,38 @@ export function NoteForm({
   }
 
   return (
-    <View className="flex-1">
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{ gap: 16 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View>
-          <Text className="mb-2 text-sm font-medium text-slate-300">Title</Text>
+    <View className="gap-4">
+      <View>
+        <Text className="mb-2 text-sm font-medium text-slate-300">Title</Text>
 
-          <TextInput
-            className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-base text-white"
-            value={title}
-            onChangeText={setTitle}
-            placeholder="What was this about?"
-            placeholderTextColor="#64748b"
-            autoFocus
-            returnKeyType="next"
-          />
-        </View>
+        <TextInput
+          className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-base text-white"
+          value={title}
+          onChangeText={setTitle}
+          placeholder="What was this about?"
+          placeholderTextColor="#64748b"
+          autoFocus
+          returnKeyType="next"
+        />
+      </View>
 
-        <View className="flex-1">
-          <Text className="mb-2 text-sm font-medium text-slate-300">Note</Text>
+      <View>
+        <Text className="mb-2 text-sm font-medium text-slate-300">Note</Text>
 
-          <TextInput
-            className="min-h-64 rounded-xl border border-slate-700 bg-slate-900 px-4 py-4 text-base leading-6 text-white"
-            value={body}
-            onChangeText={setBody}
-            placeholder="Write a solution, concept, or reminder clue..."
-            placeholderTextColor="#64748b"
-            multiline
-            textAlignVertical="top"
-          />
-        </View>
+        <TextInput
+          className="min-h-64 rounded-xl border border-slate-700 bg-slate-900 px-4 py-4 text-base leading-6 text-white"
+          value={body}
+          onChangeText={setBody}
+          placeholder="Write a solution, concept, or reminder clue..."
+          placeholderTextColor="#64748b"
+          multiline
+          textAlignVertical="top"
+        />
+      </View>
 
-        {errorMessage ? (
-          <Text className="text-sm text-red-400">{errorMessage}</Text>
-        ) : null}
-      </ScrollView>
+      {errorMessage ? (
+        <Text className="text-sm text-red-400">{errorMessage}</Text>
+      ) : null}
 
       <Pressable
         className={`mt-4 items-center rounded-xl px-4 py-4 ${

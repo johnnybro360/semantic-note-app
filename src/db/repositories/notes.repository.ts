@@ -31,6 +31,30 @@ function mapNoteRow(row: NoteRow): Note {
 }
 
 export const notesRepository = {
+  async findRecent(database: SQLiteDatabase, limit = 10): Promise<Note[]> {
+    const normalizedLimit = Math.max(1, Math.floor(limit));
+
+    const rows = await database.getAllAsync<NoteRow>(
+      `
+        SELECT
+          id,
+          title,
+          body,
+          embedding_status,
+          created_at,
+          updated_at
+        FROM notes
+        ORDER BY updated_at DESC
+        LIMIT $limit
+      `,
+      {
+        $limit: normalizedLimit,
+      },
+    );
+
+    return rows.map(mapNoteRow);
+  },
+
   async findAll(database: SQLiteDatabase): Promise<Note[]> {
     const rows = await database.getAllAsync<NoteRow>(`
         SELECT
@@ -234,6 +258,36 @@ export const notesRepository = {
       {
         $query: ftsQuery,
         $limit: limit,
+      },
+    );
+
+    return rows.map(mapNoteRow);
+  },
+
+  async findByEmbeddingStatus(
+    database: SQLiteDatabase,
+    status: EmbeddingStatus,
+    limit = 50,
+  ): Promise<Note[]> {
+    const normalizedLimit = Math.max(1, Math.floor(limit));
+
+    const rows = await database.getAllAsync<NoteRow>(
+      `
+        SELECT
+          id,
+          title,
+          body,
+          embedding_status,
+          created_at,
+          updated_at
+        FROM notes
+        WHERE embedding_status = $status
+        ORDER BY updated_at ASC
+        LIMIT $limit
+      `,
+      {
+        $status: status,
+        $limit: normalizedLimit,
       },
     );
 
