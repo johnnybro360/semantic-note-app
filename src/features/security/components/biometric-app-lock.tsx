@@ -1,12 +1,12 @@
 import type { PropsWithChildren } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    AppState,
-    type AppStateStatus,
-    Pressable,
-    Text,
-    View,
+  ActivityIndicator,
+  AppState,
+  type AppStateStatus,
+  Pressable,
+  Text,
+  View,
 } from "react-native";
 
 import * as LocalAuthentication from "expo-local-authentication";

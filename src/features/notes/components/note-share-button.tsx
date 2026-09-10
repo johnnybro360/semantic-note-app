@@ -44,14 +44,12 @@ export function NoteShareButton({
   }
 
   const isDisabled = disabled || isSharing;
-  const buttonClassName = isDisabled
-    ? "mt-3 items-center rounded-xl bg-white px-4 py-3 opacity-50"
-    : "mt-3 items-center rounded-xl bg-white px-4 py-3 active:bg-slate-200";
 
   return (
     <Pressable
-      className={buttonClassName}
-
+      className={`mt-3 items-center rounded-xl border border-blue-500 bg-blue-950 px-4 py-3 ${
+        isDisabled ? "opacity-50" : "active:bg-blue-900"
+      }`}
       disabled={isDisabled}
       onPress={() => void handleShare()}
     >

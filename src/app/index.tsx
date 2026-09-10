@@ -3,6 +3,8 @@ import { useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+
 import { NoteListEmptyState } from "@/features/notes/components/note-list-empty-state";
 import { NoteListErrorState } from "@/features/notes/components/note-list-error-state";
 import { NoteListItem } from "@/features/notes/components/note-list-item";
@@ -12,21 +14,19 @@ import { NoteSearchInput } from "@/features/notes/components/note-search-input";
 import { useHybridSearchNotes, useNotes } from "@/features/notes/notes.queries";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
+const headerEntering = FadeInDown.duration(220);
+const newNoteButtonEntering = FadeInUp.delay(120).duration(220);
+
 export default function NotesScreen() {
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
 
-  // const normalizedSearchText = searchText.trim();
-  // const isSearching = normalizedSearchText.length > 0;
-
   // /*
   //  * Hooks must always be called unconditionally.
   //  *
-  //  * useSearchNotes() internally uses enabled: false when
+  //  * useHybridSearchNotes() internally uses enabled: false when
   //  * normalizedSearchText is empty.
   //  */
-  // const notesQuery = useNotes();
-  // const searchQuery = useSearchNotes(normalizedSearchText);
 
   const debouncedSearchText = useDebouncedValue(searchText, 300);
 
@@ -35,8 +35,6 @@ export default function NotesScreen() {
   const isSearching = normalizedSearchText.length > 0;
 
   const notesQuery = useNotes();
-
-  // const searchQuery = useSemanticSearchNotes(normalizedSearchText);
 
   const searchQuery = useHybridSearchNotes(normalizedSearchText);
 
@@ -50,17 +48,19 @@ export default function NotesScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-950">
       <View className="flex-1 px-5 py-4">
-        <View className="mb-4">
-          <Text className="text-3xl font-bold text-white">Notes</Text>
+        <Animated.View entering={headerEntering}>
+          <View className="mb-4">
+            <Text className="text-3xl font-bold text-white">Notes</Text>
 
-          <Text className="mt-1 text-base text-slate-400">
-            Find what you remember.
-          </Text>
-        </View>
+            <Text className="mt-1 text-base text-slate-400">
+              Find what you remember.
+            </Text>
+          </View>
 
-        <View className="mb-4">
-          <NoteSearchInput value={searchText} onChangeText={setSearchText} />
-        </View>
+          <View className="mb-4">
+            <NoteSearchInput value={searchText} onChangeText={setSearchText} />
+          </View>
+        </Animated.View>
 
         {activeQuery.isPending ? (
           <NoteListLoadingState />
@@ -75,9 +75,10 @@ export default function NotesScreen() {
             }}
             data={notes}
             keyExtractor={(note) => note.id}
-            renderItem={({ item }) => (
+            renderItem={({ index, item }) => (
               <NoteListItem
                 note={item}
+                index={index}
                 onPress={() =>
                   router.push({
                     pathname: "/notes/[id]",
@@ -97,16 +98,20 @@ export default function NotesScreen() {
             }
             refreshing={activeQuery.isRefetching}
             onRefresh={() => void activeQuery.refetch()}
+            keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
           />
         )}
 
-        <Pressable
-          className="mt-4 items-center rounded-xl bg-blue-500 px-4 py-4 active:bg-blue-600"
-          onPress={() => router.push("/notes/new")}
-        >
-          <Text className="text-base font-semibold text-white">New note</Text>
-        </Pressable>
+        <Animated.View entering={newNoteButtonEntering}>
+          <Pressable
+            className="mt-4 items-center rounded-xl bg-blue-500 px-4 py-4 active:bg-blue-600"
+            onPress={() => router.push("/notes/new")}
+          >
+            <Text className="text-base font-semibold text-white">New note</Text>
+          </Pressable>
+        </Animated.View>
+
         {/* <Pressable
           className="mt-3 rounded-xl bg-slate-800 p-4"
           onPress={() => router.push("/dev/embedding")}
