@@ -85,7 +85,13 @@ export function BiometricAppLock({ children }: PropsWithChildren) {
   }, []);
 
   useEffect(() => {
-    void authenticate();
+    const frameId = requestAnimationFrame(() => {
+      void authenticate();
+    });
+
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
   }, [authenticate]);
 
   useEffect(() => {

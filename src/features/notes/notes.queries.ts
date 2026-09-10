@@ -1,3 +1,8 @@
+import { notesRepository } from "@/db/repositories/notes.repository";
+import {
+  indexNoteEmbedding,
+  retryNoteEmbedding,
+} from "@/features/embeddings/note-embedding-index.service";
 import {
   useMutation,
   useQuery,
@@ -5,11 +10,6 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { useSQLiteContext, type SQLiteDatabase } from "expo-sqlite";
-
-import { indexNoteEmbedding } from "@/features/embeddings/note-embedding-index.service";
-
-import { notesRepository } from "@/db/repositories/notes.repository";
-import { retryNoteEmbedding } from "@/features/embeddings/note-embedding-index.service";
 import { searchNotesHybrid } from "./hybrid-note-search.service";
 import type { CreateNoteInput, Note, UpdateNoteInput } from "./notes.types";
 import { searchNotesSemantically } from "./semantic-note-search.service";
