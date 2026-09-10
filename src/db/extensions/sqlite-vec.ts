@@ -2,8 +2,10 @@ import * as SQLite from "expo-sqlite";
 
 import type { SQLiteDatabase } from "expo-sqlite";
 
+type SQLiteExtensionConnection = Pick<SQLiteDatabase, "loadExtensionAsync">;
+
 export async function loadSQLiteVecExtension(
-  database: SQLiteDatabase,
+  database: SQLiteExtensionConnection,
 ): Promise<void> {
   const extension = SQLite.bundledExtensions["sqlite-vec"];
 

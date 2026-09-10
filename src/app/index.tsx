@@ -9,23 +9,37 @@ import { NoteListItem } from "@/features/notes/components/note-list-item";
 import { NoteListLoadingState } from "@/features/notes/components/note-list-loading-state";
 import { NoteSearchEmptyState } from "@/features/notes/components/note-search-empty-state";
 import { NoteSearchInput } from "@/features/notes/components/note-search-input";
-import { useNotes, useSearchNotes } from "@/features/notes/notes.queries";
+import {
+  useNotes,
+  useSemanticSearchNotes,
+} from "@/features/notes/notes.queries";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 export default function NotesScreen() {
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
 
-  const normalizedSearchText = searchText.trim();
+  // const normalizedSearchText = searchText.trim();
+  // const isSearching = normalizedSearchText.length > 0;
+
+  // /*
+  //  * Hooks must always be called unconditionally.
+  //  *
+  //  * useSearchNotes() internally uses enabled: false when
+  //  * normalizedSearchText is empty.
+  //  */
+  // const notesQuery = useNotes();
+  // const searchQuery = useSearchNotes(normalizedSearchText);
+
+  const debouncedSearchText = useDebouncedValue(searchText, 300);
+
+  const normalizedSearchText = debouncedSearchText.trim();
+
   const isSearching = normalizedSearchText.length > 0;
 
-  /*
-   * Hooks must always be called unconditionally.
-   *
-   * useSearchNotes() internally uses enabled: false when
-   * normalizedSearchText is empty.
-   */
   const notesQuery = useNotes();
-  const searchQuery = useSearchNotes(normalizedSearchText);
+
+  const searchQuery = useSemanticSearchNotes(normalizedSearchText);
 
   /*
    * Select which query result should currently be displayed.

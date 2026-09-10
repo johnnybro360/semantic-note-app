@@ -68,6 +68,45 @@ export const notesRepository = {
     return row ? mapNoteRow(row) : null;
   },
 
+  async findByIds(database: SQLiteDatabase, ids: string[]): Promise<Note[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const placeholders = ids.map(() => "?").join(", ");
+
+    const rows = await database.getAllAsync<NoteRow>(
+      `
+        SELECT
+          id,
+          title,
+          body,
+          embedding_status,
+          created_at,
+          updated_at
+        FROM notes
+        WHERE id IN (${placeholders})
+      `,
+      ids,
+    );
+
+    const notesById = new Map(
+      rows.map((row) => {
+        const note = mapNoteRow(row);
+        return [note.id, note] as const;
+      }),
+    );
+
+    /*
+     * SQLite does not preserve the order of the IN values.
+     * Restore the vector search ranking here.
+     */
+    return ids.flatMap((id) => {
+      const note = notesById.get(id);
+      return note ? [note] : [];
+    });
+  },
+
   async create(
     database: SQLiteDatabase,
     input: CreateNoteInput,
