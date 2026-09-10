@@ -94,6 +94,12 @@ export default function NotesScreen() {
         >
           <Text className="text-base font-semibold text-white">New note</Text>
         </Pressable>
+        <Pressable
+          className="mt-3 rounded-xl bg-slate-800 p-4"
+          onPress={() => router.push("/dev/embedding")}
+        >
+          <Text className="text-center text-white">Test embedding runtime</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );

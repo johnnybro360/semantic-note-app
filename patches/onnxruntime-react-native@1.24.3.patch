@@ -1,0 +1,20 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 41b43599a9af6ef1c170047d39db1f3baa6ca682..aded89d4d9d9bfd26e120e056690f0d9cec13ee8 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -247,7 +247,14 @@ dependencies {
+     extractLibs "com.microsoft.onnxruntime:onnxruntime-android:latest.integration@aar"
+   }
+ 
+-  if (VersionNumber.parse(REACT_NATIVE_VERSION) < VersionNumber.parse("0.71")) {
++  def reactNativeVersionParts = REACT_NATIVE_VERSION.split("\\.")
++  def reactNativeMajorVersion = reactNativeVersionParts[0].toInteger()
++  def reactNativeMinorVersion = reactNativeVersionParts[1].toInteger()
++
++  if (
++    reactNativeMajorVersion == 0 &&
++    reactNativeMinorVersion < 71
++  ) {
+     extractLibs "com.facebook.fbjni:fbjni:+:headers"
+     extractLibs "com.facebook.fbjni:fbjni:+"
+   }
