@@ -1,56 +1,141 @@
-# Welcome to your Expo app 👋
+# Noteapp
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An **on-device notes app** for Android that finds notes by meaning, not just keywords.
 
-## Get started
+Notes never leave the phone. Search runs locally: SQLite FTS5 for exact terms, a MiniLM embedding model for semantic similarity, and Reciprocal Rank Fusion to merge both rankings.
 
-1. Install dependencies
+Built with Expo SDK 57, React Native, and TypeScript as a portfolio project in mobile architecture, on-device ML, and information retrieval.
 
-   ```bash
-   npm install
-   ```
+## Why this project
 
-2. Start the app
+Most note apps either search text literally or send content to a cloud model. This app does hybrid retrieval entirely on the device:
 
-   ```bash
-   npx expo start
-   ```
+- **Keyword search** via SQLite FTS5 (`unicode61` tokenizer, content-sync triggers)
+- **Semantic search** via `all-MiniLM-L6-v2` (ONNX Runtime, 384-d vectors)
+- **Vector index** via the bundled `sqlite-vec` extension (`vec0`, cosine distance)
+- **Fusion** with Reciprocal Rank Fusion so a note that matches both signals ranks higher
 
-In the output, you'll find options to open the app in a
+That combination is the interesting part for hiring conversations: native mobile constraints, inference, storage, and search ranking in one product.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Create, edit, and list notes with optimistic UI via TanStack Query
+- Hybrid search as you type (300ms debounce)
+- Background embedding after save, with pending / ready / failed status
+- Startup recovery that re-indexes notes whose embeddings were skipped or failed
+- Biometric app lock (fingerprint / face) that re-locks when the app backgrounds
+- Native share sheet for a note
+- Dev screen for embedding latency benchmarks
 
-## Get a fresh project
+## Architecture
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Expo Router screens  (list / detail / create / benchmark)  │
+│  TanStack Query  ·  NativeWind  ·  Reanimated               │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+        ┌────────────────────┼────────────────────┐
+        ▼                    ▼                    ▼
+  Notes repository     Hybrid search        Embedding pipeline
+  CRUD + FTS5          FTS ∥ MiniLM         WordPiece tokenizer
+                       Reciprocal Rank      ONNX session
+                       Fusion               mean-pool + L2 norm
+        │                    │                    │
+        └────────────────────┼────────────────────┘
+                             ▼
+                    expo-sqlite  (WAL)
+                    notes · notes_fts · note_embeddings (vec0)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Notes and vectors live in one SQLite database. FTS stays in sync with SQL triggers. When a note’s title or body changes, its vector row is deleted and the note is marked `pending` so indexing can catch up without blocking the UI.
 
-### Other setup steps
+## Search ranking
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+1. Run FTS5 keyword search and MiniLM vector search in parallel.
+2. Pull extra candidates (about 3× the page size) so overlap can boost scores.
+3. Score each candidate with Reciprocal Rank Fusion: `1 / (60 + rank)`.
+4. Notes that appear in both lists accumulate both ranks.
+5. Ties break on cosine similarity, then `updated_at`.
 
-## Learn more
+## On-device embeddings
 
-To learn more about developing your project with Expo, look at the following resources:
+- Model: **all-MiniLM-L6-v2** (384 dimensions), loaded with ONNX Runtime for React Native
+- Tokenizer: WordPiece implementation matching the model vocab (no cloud tokenizer)
+- Pooling: attention-masked mean pool, then L2 normalize
+- Index: `sqlite-vec` `FLOAT[384]` with cosine distance
+- Native wiring: custom Expo config plugin registers `OnnxruntimePackage` in Kotlin `MainApplication`
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Because this uses native ONNX and sqlite-vec, the app needs a **development build**, not Expo Go.
 
-## Join the community
+## Stack
 
-Join our community of developers creating universal apps.
+| Layer | Choice |
+| --- | --- |
+| App | Expo SDK 57, React Native 0.86, React 19, TypeScript (strict) |
+| Navigation | Expo Router (file-based, typed routes) |
+| Data | expo-sqlite, FTS5, sqlite-vec, WAL + foreign keys |
+| Async state | TanStack Query |
+| On-device ML | onnxruntime-react-native, bundled MiniLM + tokenizer assets |
+| Security | expo-local-authentication (strong biometrics) |
+| UI | NativeWind (Tailwind), React Native Reanimated |
+| Package manager | Bun |
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Project layout
+
+```
+src/
+  app/                         Expo Router screens
+  db/
+    database.ts                WAL, sqlite-vec, migrations
+    migrations/                notes, FTS5, vec0 embeddings
+    repositories/              notes + embedding vectors
+  features/
+    notes/                     CRUD, hybrid/semantic search, UI
+    embeddings/                ONNX runtime, tokenizer, indexing
+    security/                  biometric lock
+  hooks/
+plugins/                       Expo config plugin for ONNX
+assets/models/all-minilm-l6-v2/
+```
+
+Route files stay in `src/app/`. Domain logic lives in `src/features/` and `src/db/` so screens stay thin.
+
+## Getting started
+
+Requires [Bun](https://bun.sh), [Android Studio](https://developer.android.com/studio) (or a device), and JDK for a native Android build.
+
+```bash
+bun install
+bunx expo run:android
+```
+
+`expo run:android` compiles a development client with ONNX Runtime and sqlite-vec, then starts Metro.
+
+Useful commands:
+
+```bash
+bunx expo start          # Metro (after a native build exists)
+bunx expo lint
+bunx tsc --noEmit
+bunx expo-doctor
+```
+
+iOS is not the current target; biometric copy and the ONNX config plugin are Android-oriented.
+
+## Privacy
+
+Notes, embeddings, and search all stay on device. There is no account, sync, or inference API. Biometrics gate access to the local database; they are not sent anywhere.
+
+## What I would talk through in an interview
+
+- Why hybrid retrieval beats keyword-only search for messy personal notes
+- Why RRF is a simple, rank-based fusion that does not need calibrated scores
+- How to keep SQLite, FTS, and a vector table consistent under edits and deletes
+- How to run transformer inference on a phone without blocking the UI
+- Why Expo config plugins matter when a native module is not auto-linked
+- Tradeoffs of on-device MiniLM vs. a hosted embedding API (privacy, latency, quality, APK size)
+
+## License
+
+Private / portfolio project. Ask before reusing the code.
